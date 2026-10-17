@@ -4,7 +4,8 @@
 
 import { supabase } from './supabase';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = rawApiUrl.replace(/\/+$/, '');
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   if (typeof window !== 'undefined') {
@@ -29,7 +30,8 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const authHeaders = await getAuthHeaders();
-  const url = `${API_URL}${path}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${API_URL}${cleanPath}`;
 
   let res: Response;
   try {

@@ -38,13 +38,35 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS
-const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000').split(',').map(s => s.trim());
+const configuredOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map(s => s.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
 app.use(cors({
-  origin: corsOrigins,
+  origin: function (origin, callback) {
+    // Allow non-browser requests (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    const cleanOrigin = origin.replace(/\/+$/, '');
+    if (
+      configuredOrigins.includes(cleanOrigin) ||
+      cleanOrigin.endsWith('.vercel.app') ||
+      cleanOrigin.includes('localhost') ||
+      cleanOrigin.includes('127.0.0.1')
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
+
+// Explicit preflight handler
+app.options('*', cors());
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
