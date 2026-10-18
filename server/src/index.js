@@ -43,10 +43,8 @@ app.use(
     origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   }),
 );
-app.options("*", cors());
 
 // Body parsing
 app.use(express.json({ limit: "10mb" }));
@@ -54,24 +52,15 @@ app.use(express.json({ limit: "10mb" }));
 // Request logging (skip health checks)
 app.use(
   morgan("short", {
-    skip: (req) => req.url === "/api/v1/health",
+    skip: (req) => req.url === "/api/v1/health" || req.url === "/health",
   }),
 );
 
-// Global error handler
-app.use((err, _req, res, _next) => {
-  console.error("Unhandled exception:", err);
-  res.status(500).json({
-    success: false,
-    error: {
-      code: "INTERNAL_ERROR",
-      message: "An unexpected error occurred. Please try again.",
-    },
-  });
-});
+// Health check on root and api path
+app.get("/health", (_req, res) => res.json({ status: "healthy" }));
+app.use("/api/v1", healthRoutes);
 
 // Routes
-app.use("/api/v1", healthRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/merchants", merchantRoutes);
@@ -83,6 +72,18 @@ app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/events", eventRoutes);
+
+// Global error handler (must be after all routes)
+app.use((err, _req, res, _next) => {
+  console.error("Unhandled exception:", err);
+  res.status(500).json({
+    success: false,
+    error: {
+      code: "INTERNAL_ERROR",
+      message: err?.message || "An unexpected error occurred. Please try again.",
+    },
+  });
+});
 
 // Connect to MongoDB and start server
 const MONGODB_URI =

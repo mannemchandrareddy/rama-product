@@ -1,7 +1,7 @@
 # Render Blueprint — deploy the Node.js backend as a web service
 services:
   - type: web
-    name: rama-product-api
+    name: rama-product
     runtime: node
     region: oregon
     plan: free

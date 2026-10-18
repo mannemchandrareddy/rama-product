@@ -25,6 +25,12 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   return {};
 }
 
+export function warmupApi(): void {
+  if (typeof window !== 'undefined') {
+    fetch(`${API_URL}/api/v1/health`, { method: 'GET', keepalive: true }).catch(() => {});
+  }
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {}
@@ -33,19 +39,30 @@ async function request<T>(
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   const url = `${API_URL}${cleanPath}`;
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...options.headers,
-      },
-    });
-  } catch {
+  let res: Response | null = null;
+  const maxRetries = options.method && options.method !== 'GET' ? 1 : 2;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      res = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+          ...options.headers,
+        },
+      });
+      break;
+    } catch {
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+    }
+  }
+
+  if (!res) {
     throw new Error(
-      `Unable to reach API at ${API_URL}. Make sure the backend server is running.`
+      `Unable to reach API at ${API_URL}. The backend service may be waking up (Render free tier takes ~30-50s after inactivity). Please wait a moment and try again.`
     );
   }
 

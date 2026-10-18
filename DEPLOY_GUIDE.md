@@ -39,7 +39,7 @@ mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/rama_product?retryWri
 3. Click **New** → **Web Service**
 4. Connect your GitHub repo
 5. Configure:
-   - **Name**: `rama-product-api`
+   - **Name**: `rama-product`
    - **Root Directory**: `server`
    - **Runtime**: `Node`
    - **Build Command**: `npm install`
@@ -58,7 +58,7 @@ mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/rama_product?retryWri
 | `PORT` | `8000` |
 
 7. Click **Deploy** → Wait for it to go live
-8. Note your Render URL: `https://rama-product-api.onrender.com`
+8. Note your Render URL: `https://rama-product.onrender.com`
 
 ---
 
@@ -75,7 +75,7 @@ mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/rama_product?retryWri
 
 | Key | Value |
 |-----|-------|
-| `NEXT_PUBLIC_API_URL` | `https://rama-product-api.onrender.com` (from Step 2) |
+| `NEXT_PUBLIC_API_URL` | `https://rama-product.onrender.com` (from Step 2) |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://tpmsbpqwldunvgzmzlah.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
 

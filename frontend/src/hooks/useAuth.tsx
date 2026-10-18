@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import { api } from '@/lib/api';
+import { api, warmupApi } from '@/lib/api';
 import type { User, UserRole } from '@/types';
 
 interface AuthState {
@@ -51,6 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Warm up the backend if sleeping on Render free tier
+    warmupApi();
+
     // Check initial session
     const initAuth = async () => {
       try {
